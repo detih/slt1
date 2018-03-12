@@ -1,9 +1,9 @@
 {
-  "name": "tgvkbot",
+  "name": "SLT1",
   "description": "Бот позволяет получать и отправлять сообщения VK находясь в Telegram",
-  "repository": "https://github.com/Kylmakalle/tgvkbot",
+  "repository": "https://github.com/detih/slt1/",
   "keywords": ["vk", "bot", "telegram"],
-  "website": "https://asergey.me/tgvkbot/",
+  "website": "https://github.com/detih/slt1/",
   "buildpacks":[
    {
     "url": "heroku/python"
@@ -12,11 +12,11 @@
   "env": {
     "TELEGRAM_TOKEN": {
       "description": "Telegram bot API токен от https://t.me/BotFather",
-      "value": "123456789:AAABBBCCCDDDEEEFFFGGGHHHIIIJJJKKKLL"
+      "value": "410750690:AAGEg9mUk_gBNz0vGj9X78rjNs1wmfs5yKA"
     },
   "VK_APP": {
       "description": "ID VK приложения из https://vk.com/apps?act=manage",
-      "required": true
+      "value": "6405589"
     }
   },
  "addons": [
