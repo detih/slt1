@@ -346,16 +346,16 @@ def stop_command(message):
 
 @bot.message_handler(commands=['start'])
 def start_command(message):
-    if check_thread(message.from_user.id):
+    if check_thread(message.from_chat.id):
         mark = types.InlineKeyboardMarkup()
         login = types.InlineKeyboardButton('ВХОД', url=link)
         mark.add(login)
-        bot.send_message(message,
+        bot.send_message(message.from_chat.id,
                          'Привет, этот бот поможет тебе общаться ВКонтакте, войди по кнопке ниже'
                          ' и отправь мне то, что получишь в адресной строке.',
                          reply_markup=mark).wait()
     else:
-        bot.send_message(message, 'Вход уже выполнен!\n/stop для выхода.').wait()
+        bot.send_message(message.from_chat.id, 'Вход уже выполнен!\n/stop для выхода.').wait()
 
 
 def form_request(message, method, info):
