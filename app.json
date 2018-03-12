@@ -12,11 +12,11 @@
   "env": {
     "TELEGRAM_TOKEN": {
       "description": "Telegram bot API токен от https://t.me/BotFather",
-      "value": "410750690:AAGEg9mUk_gBNz0vGj9X78rjNs1wmfs5yKA"
+      "value": "1111111"
     },
   "VK_APP": {
       "description": "ID VK приложения из https://vk.com/apps?act=manage",
-      "value": "6405589"
+      "value": "111111111"
     }
   },
  "addons": [
