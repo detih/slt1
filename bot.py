@@ -127,13 +127,13 @@ def create_markup(message, user, page, edit=False):
             message.chat.id, message.message_id,
             parse_mode='HTML', reply_markup=markup).wait()
     else:
-        bot.send_message(message.from_user.id,
+        bot.send_message(message.chat.id,
                          '<b>Выберите Диалог:</b> <code>{}/{}</code> стр.'.format(page + 1, len(vk_dialogs[str(user)])),
                          parse_mode='HTML', reply_markup=markup).wait()
 
 
 def search_users(message, text):
-    session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
+    session = VkMessage(vk_tokens.get(str(message.chat.id))).session
     api = vk.API(session, v=VK_API_VERSION)
     markup = types.InlineKeyboardMarkup(row_width=1)
     result = api.messages.searchDialogs(q=text, limit=10, fields=[])
@@ -147,11 +147,11 @@ def search_users(message, text):
                                            callback_data='group' + str(chat['chat_id'])))
     if markup.keyboard:
         markup.add(types.InlineKeyboardButton('Поиск 🔍', callback_data='search'))
-        bot.send_message(message.from_user.id, '<b>Результат поиска по</b> <i>{}</i>'.format(text),
+        bot.send_message(message.chat.id, '<b>Результат поиска по</b> <i>{}</i>'.format(text),
                          reply_markup=markup, parse_mode='HTML')
     else:
         markup.add(types.InlineKeyboardButton('Поиск 🔍', callback_data='search'))
-        bot.send_message(message.from_user.id, '<b>Ничего не найдено по запросу</b> <i>{}</i>'.format(text),
+        bot.send_message(message.chat.id, '<b>Ничего не найдено по запросу</b> <i>{}</i>'.format(text),
                          parse_mode='HTML', reply_markup=markup)
 
 
@@ -254,13 +254,13 @@ supervisor.start()
 
 def stop_thread(message):
     for th in threading.enumerate():
-        if th.getName() == 'vk' + str(message.from_user.id):
-            t = vk_threads[str(message.from_user.id)]
+        if th.getName() == 'vk' + str(message.chat.id):
+            t = vk_threads[str(message.chat.id)]
             t.terminate()
             th.join()
-            vk_tokens.delete(str(message.from_user.id))
-            vk_dialogs.pop(str(message.from_user.id), None)
-            currentchat.pop(str(message.from_user.id), None)
+            vk_tokens.delete(str(message.chat.id))
+            vk_dialogs.pop(str(message.chat.id), None)
+            currentchat.pop(str(message.chat.id), None)
 
 
 def extract_unique_code(text):
@@ -285,19 +285,19 @@ def info_extractor(info):
 @bot.message_handler(commands=['chat'])
 def chat_command(message):
     if logged(message):
-        if str(message.from_user.id) in currentchat:
-            if 'group' in currentchat[str(message.from_user.id)]['id']:
-                chat = currentchat[str(message.from_user.id)]
-                bot.send_message(message.from_user.id,
+        if str(message.chat.id) in currentchat:
+            if 'group' in currentchat[str(message.chat.id)]['id']:
+                chat = currentchat[str(message.chat.id)]
+                bot.send_message(message.chat.id,
                                  '<i>Вы в беседе {}</i>'.format(chat['title']),
                                  parse_mode='HTML').wait()
             else:
-                chat = currentchat[str(message.from_user.id)]
-                bot.send_message(message.from_user.id,
+                chat = currentchat[str(message.chat.id)]
+                bot.send_message(message.chat.id,
                                  '<i>Вы в чате с {}</i>'.format(chat['title']),
                                  parse_mode='HTML').wait()
         else:
-            bot.send_message(message.from_user.id,
+            bot.send_message(message.chat.id,
                              '<i>Вы не находитесь в чате</i>',
                              parse_mode='HTML').wait()
 
@@ -305,13 +305,13 @@ def chat_command(message):
 @bot.message_handler(commands=['leave'])
 def leave_command(message):
     if logged(message):
-        if str(message.from_user.id) in currentchat:
-            currentchat.pop(str(message.from_user.id), None)
-            bot.send_message(message.from_user.id,
+        if str(message.chat.id) in currentchat:
+            currentchat.pop(str(message.chat.id), None)
+            bot.send_message(message.chat.id,
                              '<i>Вы вышли из чата</i>',
                              parse_mode='HTML').wait()
         else:
-            bot.send_message(message.from_user.id,
+            bot.send_message(message.chat.id,
                              '<i>Вы не находитесь в чате</i>',
                              parse_mode='HTML').wait()
 
@@ -319,9 +319,9 @@ def leave_command(message):
 @bot.message_handler(commands=['dialogs'])
 def dialogs_command(message):
     if logged(message):
-        session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
-        request_user_dialogs(session, message.from_user.id)
-        create_markup(message, message.from_user.id, 0)
+        session = VkMessage(vk_tokens.get(str(message.chat.id))).session
+        request_user_dialogs(session, message.chat.id)
+        create_markup(message, message.chat.id, 0)
 
 
 @bot.message_handler(commands=['search'])
@@ -331,17 +331,17 @@ def search_command(message):
         if telebot.util.extract_arguments(message.text):
             search_users(message, telebot.util.extract_arguments(message.text))
         else:
-            bot.send_message(message.from_user.id, '<b>Поиск беседы</b> 🔍',
+            bot.send_message(message.chat.id, '<b>Поиск беседы</b> 🔍',
                              parse_mode='HTML', reply_markup=markup).wait()
 
 
 @bot.message_handler(commands=['stop'])
 def stop_command(message):
-    if not check_thread(message.from_user.id):
+    if not check_thread(message.chat.id):
         stop_thread(message)
-        bot.send_message(message.from_user.id, 'Успешный выход!').wait()
+        bot.send_message(message.chat.id, 'Успешный выход!').wait()
     else:
-        bot.send_message(message.from_user.id, 'Вход не был выполнен!').wait()
+        bot.send_message(message.chat.id, 'Вход не был выполнен!').wait()
 
 
 @bot.message_handler(commands=['start'])
@@ -394,10 +394,10 @@ def form_request(message, method, info):
 
 
 def logged(message):
-    if vk_tokens.get(str(message.from_user.id)):
+    if vk_tokens.get(str(message.chat.id)):
         return True
     else:
-        bot.send_message(message.from_user.id, 'Вход не выполнен! /start для входа').wait()
+        bot.send_message(message.chat.id, 'Вход не выполнен! /start для входа').wait()
         return False
 
 
@@ -408,14 +408,14 @@ def vk_sender(message, method):
             if info is not None:
                 form_request(message, method, info)
 
-        elif str(message.from_user.id) in currentchat:
+        elif str(message.chat.id) in currentchat:
             info = []
-            if 'group' in currentchat[str(message.from_user.id)]['id']:
+            if 'group' in currentchat[str(message.chat.id)]['id']:
                 info.append('0')
-                info.append(currentchat[str(message.from_user.id)]['id'].split('group')[1])
+                info.append(currentchat[str(message.chat.id)]['id'].split('group')[1])
                 info.append('1')
             else:
-                info.append(currentchat[str(message.from_user.id)]['id'])
+                info.append(currentchat[str(message.chat.id)]['id'])
                 info.append('0')
                 info.append('0')
             form_request(message, method, info)
@@ -429,7 +429,7 @@ def audio_title_creator(message, performer=None, title=None):
 
 
 def send_text(message, userid, group, forward_messages=None):
-    session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
+    session = VkMessage(vk_tokens.get(str(message.chat.id))).session
     api = vk.API(session, v=VK_API_VERSION)
     if group:
         api.messages.send(chat_id=userid, message=message.text, forward_messages=forward_messages)
@@ -439,7 +439,7 @@ def send_text(message, userid, group, forward_messages=None):
 
 def send_doc(message, userid, group, forward_messages=None):
     filetype = message.content_type
-    session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
+    session = VkMessage(vk_tokens.get(str(message.chat.id))).session
     api = vk.API(session, v=VK_API_VERSION)
     if filetype == 'document' and 'video' not in message.document.mime_type:
         file = wget.download(
@@ -513,7 +513,7 @@ def send_doc(message, userid, group, forward_messages=None):
 
 def send_photo(message, userid, group, forward_messages=None):
     filetype = message.content_type
-    session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
+    session = VkMessage(vk_tokens.get(str(message.chat.id))).session
     api = vk.API(session, v=VK_API_VERSION)
     file = wget.download(
         FILE_URL.format(token, bot.get_file(getattr(message, filetype)[-1].file_id).wait().file_path))
@@ -543,7 +543,7 @@ def send_photo(message, userid, group, forward_messages=None):
 
 def send_sticker(message, userid, group, forward_messages=None):
     filetype = message.content_type
-    session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
+    session = VkMessage(vk_tokens.get(str(message.chat.id))).session
     api = vk.API(session, v=VK_API_VERSION)
     file = wget.download(
         FILE_URL.format(token, bot.get_file(getattr(message, filetype).file_id).wait().file_path))
@@ -575,7 +575,7 @@ def send_sticker(message, userid, group, forward_messages=None):
 
 def send_video(message, userid, group, forward_messages=None):
     filetype = message.content_type
-    session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
+    session = VkMessage(vk_tokens.get(str(message.chat.id))).session
     api = vk.API(session, v=VK_API_VERSION)
     file = wget.download(
         FILE_URL.format(token, bot.get_file(getattr(message, filetype).file_id).wait().file_path))
@@ -607,7 +607,7 @@ def send_video(message, userid, group, forward_messages=None):
 
 
 def send_contact(message, userid, group, forward_messages=None):
-    session = VkMessage(vk_tokens.get(str(message.from_user.id))).session
+    session = VkMessage(vk_tokens.get(str(message.chat.id))).session
     api = vk.API(session, v=VK_API_VERSION)
     if message.contact.last_name:
         text = 'Контакт: {} {}'.format(message.contact.first_name, message.contact.last_name)
@@ -645,7 +645,7 @@ def reply_photo(message):
     try:
         vk_sender(message, send_photo)
     except:
-        bot.send_message(message.from_user.id, 'Фото слишком большое, максимально допустимый размер *20мб*!',
+        bot.send_message(message.chat.id, 'Фото слишком большое, максимально допустимый размер *20мб*!',
                          parse_mode='Markdown').wait()
 
 
@@ -674,19 +674,19 @@ def reply_text(message):
                   message.text)
     if m:
         code = extract_unique_code(m.group(0))
-        if check_thread(message.from_user.id):
+        if check_thread(message.chat.id):
             try:
                 user = verifycode(code)
-                create_thread(message.from_user.id, code)
-                bot.send_message(message.from_user.id,
+                create_thread(message.chat.id, code)
+                bot.send_message(message.chat.id,
                                  'Вход выполнен в аккаунт {} {}!'.format(user['first_name'], user['last_name'])).wait()
 
-                bot.send_message(message.from_user.id, '[Использование](https://asergey.me/tgvkbot/usage/)',
+                bot.send_message(message.chat.id, '[Использование](https://asergey.me/tgvkbot/usage/)',
                                  parse_mode='Markdown').wait()
             except:
-                bot.send_message(message.from_user.id, 'Неверная ссылка, попробуй ещё раз!').wait()
+                bot.send_message(message.chat.id, 'Неверная ссылка, попробуй ещё раз!').wait()
         else:
-            bot.send_message(message.from_user.id, 'Вход уже выполнен!\n/stop для выхода.').wait()
+            bot.send_message(message.chat.id, 'Вход уже выполнен!\n/stop для выхода.').wait()
 
     elif message.reply_to_message and message.reply_to_message.text == 'Поиск беседы 🔍':
         search_users(message, message.text)
