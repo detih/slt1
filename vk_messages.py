@@ -90,7 +90,7 @@ def attachment_handler(m, user, bot, chat_id, mainmessage=None):
                                  disable_notification=check_notification(m), reply_to_message_id=mainmessage).wait()
             except:
                 send_doc_link(attach, m, user, bot, chat_id, mainmessage)
-
+                
         elif attach['type'] == 'video':
             try:
                 link = 'https://vk.com/video{}_{}'.format(attach['video']['owner_id'],
@@ -250,6 +250,14 @@ def attachment_handler(m, user, bot, chat_id, mainmessage=None):
                                  disable_notification=check_notification(m),
                                  reply_to_message_id=comment.message_id).wait()
 
+     elif attach['type'] == 'link':
+            try:
+                data = add_user_info(m, user['first_name'], user['last_name']) + '<a href="{}">ССЫЛКА</a>'.format(
+                    get_max_src(attach['link'])) + add_reply_info(m)
+                bot.send_message(chat_id, data, parse_mode='HTML', disable_web_page_preview=False,
+                                 disable_notification=check_notification(m), reply_to_message_id=mainmessage).wait()
+            except:
+                send_doc_link(attach, m, user, bot, chat_id, mainmessage)
 
 def check_expansion(document):
     if len(document['doc']['title'].split('.')) - 1:
